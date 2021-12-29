@@ -1,17 +1,5 @@
 #include "pch.h"
 
-const char* vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main() {\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-
-const char* fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main() {\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\0";
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
@@ -26,24 +14,22 @@ int main() {
     int windowWidth = 800;
     int windowHeight = 600;
 
+    // GLFW
     GLFWwindow* window;
 
-    /* Initialize the library */
     if (!glfwInit())
         return -1;
 
-    /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(windowWidth, windowHeight, "Hello World", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
     }
 
-    /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize OpenGL context" << std::endl;
+        std::cout << "Error: failed to initialize OpenGL context." << std::endl;
         return -1;
     }
 
@@ -52,81 +38,61 @@ int main() {
 
     std::cout << glGetString(GL_VERSION) << std::endl; // Print OpenGL version
 
+    // Buffers
     float vertices[] = {
-         0.5f,  0.5f, 0.0f,  // top right
-         0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left 
+         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,   // top right
+         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom right
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,   // bottom left
+        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f    // top left 
     };
 
     unsigned int indices[] = {
-        0, 1, 3,            // first triangle
-        1, 2, 3             // second triangle
+        0, 1, 3,
+        1, 2, 3
     };
 
-    unsigned int vertexArray;
+    unsigned int vertexArray, vertexBuffer, elementBuffer;
+
     glGenVertexArrays(1, &vertexArray);
+    glGenBuffers(1, &vertexBuffer);
+    glGenBuffers(1, &elementBuffer);
+
     glBindVertexArray(vertexArray);
 
-    unsigned int vertexBuffer;
-    glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    unsigned int elementBuffer;
-    glGenBuffers(1, &elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // Position attributes
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    // Texture coord attributes
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    int success;
-    char infoLog[512];
+    // Texture
+    unsigned int frameTexture;
+    glGenTextures(1, &frameTexture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, frameTexture);
 
-    // Compile vertex shader
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "Error: vertex shader compilation failed.\n" << infoLog << std::endl;
-    }
+    // Shader
+    Shader shader("res\\shaders\\vertex_shader.glsl", "res\\shaders\\fragment_shader.glsl");
 
-    // Compile fragment shader
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "Error: fragment shader compilation failed.\n" << infoLog << std::endl;
-    }
-
-    // Link shaders
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "Error: shader program compilation failed.\n" << infoLog << std::endl;
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    // Render core
+    EasyCore renderCore(windowWidth, windowHeight);
 
     // Draw loop
     while (!glfwWindowShouldClose(window)) {
@@ -135,11 +101,13 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        shader.use();
+
+        Frame frame = renderCore.nextFrame();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, frame.width, frame.height, 0, GL_RGB, GL_UNSIGNED_BYTE, frame.pixelData.data());
+
         glBindVertexArray(vertexArray);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
