@@ -2,9 +2,6 @@
 
 #pragma once
 
-#ifndef SHADER_H
-#define SHADER_H
-
 class Shader {
 public:
 	unsigned int ID;
@@ -97,5 +94,3 @@ public:
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
 };
-
-#endif

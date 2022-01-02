@@ -4,16 +4,31 @@ class EasyCore : public RenderCore {
 public:
 	EasyCore(uint32_t windowWidth, uint32_t windowHeight);
 
-	void setVertexData(const std::vector<float>& vertices) override;
-	void setTriangleData(const std::vector<uint32_t>& triangles) override;
-	void setQuadData(const std::vector<uint32_t>& quads) override;
-	void setSphereData(const std::vector<std::tuple<uint32_t, float>>& spheres) override;
-	const Frame& nextFrame() override;
+	void setSphereData(const std::vector<Sphere>& spheres) override;
+	void setPointLightData(const std::vector<glm::vec3>& pointLight) override;
+
+	const std::vector<uint8_t>& nextFrame() override;
 
 private:
-	std::vector<float> m_VertexData;
-	std::vector<uint32_t> m_TriangleData;
-	std::vector<std::tuple<uint32_t, float>> m_SphereData;
+	// Floor quad data
+	glm::vec3 m_FloorColor = glm::vec3(0.5f, 0.5f, 0.6f);
+	glm::vec3 m_FloorNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 m_FloorQuad[4] = {
+		glm::vec3( 5.0f, -1.0f,  5.0f),
+		glm::vec3( 5.0f, -1.0f, -5.0f),
+		glm::vec3(-5.0f, -1.0f, -5.0f),
+		glm::vec3(-5.0f, -1.0f,  5.0f)
+	};
 
-	Frame m_Frame;
+	// Geometry data (only spheres "for now")
+	std::vector<Sphere> m_SphereData;
+
+	// Frame
+	std::vector<uint8_t> m_Frame;
+	const uint32_t m_FrameHeight;
+	const uint32_t m_FrameWidth;
+
+	Camera m_Camera;
+
+	glm::vec3 rayColor(const Ray& ray) const;
 };

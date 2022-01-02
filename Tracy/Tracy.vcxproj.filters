@@ -47,9 +47,18 @@
     <ClInclude Include="src\easycore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\math\ray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\math\tracymath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\shaders\fragment_shader.glsl" />
-    <None Include="res\shaders\vertex_shader.glsl" />
+    <None Include="src\shaders\fragment_shader.glsl" />
+    <None Include="src\shaders\vertex_shader.glsl" />
   </ItemGroup>
 </Project>

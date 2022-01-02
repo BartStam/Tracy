@@ -1,8 +1,5 @@
 #include "pch.h"
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
+#include "easycore.h"
 
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -20,7 +17,9 @@ int main() {
     if (!glfwInit())
         return -1;
 
-    window = glfwCreateWindow(windowWidth, windowHeight, "Hello World", NULL, NULL);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    window = glfwCreateWindow(windowWidth, windowHeight, "Tracy", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -34,7 +33,6 @@ int main() {
     }
 
     glViewport(0, 0, windowWidth, windowHeight);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     std::cout << glGetString(GL_VERSION) << std::endl; // Print OpenGL version
 
@@ -89,10 +87,15 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // Shader
-    Shader shader("res\\shaders\\vertex_shader.glsl", "res\\shaders\\fragment_shader.glsl");
+    Shader shader("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
 
     // Render core
     EasyCore renderCore(windowWidth, windowHeight);
+
+    std::vector<Sphere> sphereData;
+    Sphere sphere1{glm::vec3(0.0f, 1.0f, 2.0f), 1.0f, glm::vec3(1.0f, 0.0f, 0.5f)};
+    sphereData.push_back(sphere1);
+    renderCore.setSphereData(sphereData);
 
     // Draw loop
     while (!glfwWindowShouldClose(window)) {
@@ -103,8 +106,8 @@ int main() {
 
         shader.use();
 
-        Frame frame = renderCore.nextFrame();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, frame.width, frame.height, 0, GL_RGB, GL_UNSIGNED_BYTE, frame.pixelData.data());
+        std::vector<uint8_t> frame = renderCore.nextFrame();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, frame.data());
 
         glBindVertexArray(vertexArray);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
