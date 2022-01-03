@@ -38,7 +38,7 @@ public:
 		m_Vertical = glm::vec3(vertical);
 
 		// Calculate focal length based on field of view
-		float focalLength = (viewportWidth * 0.5f) / glm::tan(glm::pi<float>() * fieldOfView / 360);
+		float focalLength = (viewportWidth * 0.5f) / glm::tan(M_PI * fieldOfView / 360);
 
 		// Translate viewport to its desired origin + focal length
 		m_LowerLeftCorner += origin;

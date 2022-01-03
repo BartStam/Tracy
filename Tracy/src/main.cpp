@@ -8,8 +8,8 @@ void processInput(GLFWwindow* window) {
 }
 
 int main() {
-    int windowWidth = 800;
-    int windowHeight = 600;
+    int windowWidth = 960;
+    int windowHeight = 540;
 
     // GLFW
     GLFWwindow* window;
@@ -37,14 +37,14 @@ int main() {
     std::cout << glGetString(GL_VERSION) << std::endl; // Print OpenGL version
 
     // Buffers
-    float vertices[] = {
+    const float vertices[] = {
          1.0f,  1.0f, 0.0f, 1.0f, 1.0f,   // top right
          1.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom right
         -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,   // bottom left
         -1.0f,  1.0f, 0.0f, 0.0f, 1.0f    // top left 
     };
 
-    unsigned int indices[] = {
+    const unsigned int indices[] = {
         0, 1, 3,
         1, 2, 3
     };
@@ -96,6 +96,8 @@ int main() {
     Sphere sphere1{glm::vec3(0.0f, 1.0f, 2.0f), 1.0f, glm::vec3(1.0f, 0.0f, 0.5f)};
     sphereData.push_back(sphere1);
     renderCore.setSphereData(sphereData);
+
+    renderCore.setSkydomeData("res/textures/skydome3.png");
 
     // Draw loop
     while (!glfwWindowShouldClose(window)) {

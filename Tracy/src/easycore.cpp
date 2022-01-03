@@ -5,14 +5,8 @@
 EasyCore::EasyCore(uint32_t windowWidth, uint32_t windowHeight)
 	: m_FrameWidth(windowWidth)
 	, m_FrameHeight(windowHeight) {
-	uint32_t size = 3 * windowWidth * windowHeight;
-	m_Frame.resize(size, 0);
-
-	m_Camera = Camera(windowWidth, windowHeight, 90, glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-
-	std::cout << "Lower left corner: " << glm::to_string(m_Camera.lowerLeftCorner()) << std::endl;
-	std::cout << "Horizontal: " << glm::to_string(m_Camera.horizontal()) << std::endl;
-	std::cout << "Vertical: " << glm::to_string(m_Camera.vertical()) << std::endl;
+	m_Frame.resize(3 * windowWidth * windowHeight, 0);
+	m_Camera = Camera(windowWidth, windowHeight, 120, glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 }
 
 void EasyCore::setSphereData(const std::vector<Sphere>& spheres) {
@@ -21,6 +15,42 @@ void EasyCore::setSphereData(const std::vector<Sphere>& spheres) {
 
 void EasyCore::setPointLightData(const std::vector<glm::vec3>& pointLight) {
 
+}
+
+void EasyCore::setSkydomeData(const std::string& path) {
+	int width, height, channels; // Channels is a throwaway value since we force 3 channels per pixel
+	
+	// Before decoding check if the file is a supported format
+	if (stbi_info(path.c_str(), &width, &height, &channels) == 0){
+		std::cout << "Skydome texture not found or unsupported format." << std::endl;
+		return;
+	}
+
+	// And check if the texture has the right aspect ratio
+	if (!(width == 2 * height)) {
+		std::cout << "Skydome does not have a 2:1 aspect ratio." << std::endl;
+		return;
+	}
+
+	uint8_t* skydomeData = stbi_load(path.c_str(), &width, &height, &channels, 3);
+
+	// m_SkydomeWidth and m_SkydomeHeight remain unchanged if data failed to load
+	if (skydomeData) {
+		m_SkydomeWidth = width;
+		m_SkydomeHeight = height;
+
+		m_SkydomeData.reserve(m_SkydomeWidth * m_SkydomeHeight);
+
+		// Convert [0, 255] channel values to [0.0f, 1.0f]
+		for (uint32_t i = 0; i < m_SkydomeWidth * m_SkydomeHeight; i++) {
+			glm::vec3 color(skydomeData[3 * i] / 255.0f, skydomeData[3 * i + 1] / 255.0f, skydomeData[3 * i + 2] / 255.0f);
+			m_SkydomeData.push_back(color);
+		}
+	} else {
+		std::cout << "Failed to load skydome data." << std::endl;
+	}
+
+	stbi_image_free(skydomeData);
 }
 
 glm::vec3 EasyCore::rayColor(const Ray& ray) const {
@@ -63,20 +93,31 @@ glm::vec3 EasyCore::rayColor(const Ray& ray) const {
 	// If we intersected any geometry
 	if (nearestT < FLT_MAX) {
 		// Add some test illumination
-		float illumination = (1.0f - glm::dot(nearestNormal, glm::normalize(glm::vec3(0.5f, -0.5f, 0.2f)))) / 2;
+		const float illumination = (1.0f - glm::dot(nearestNormal, glm::normalize(glm::vec3(0.5f, -0.5f, 0.2f)))) / 2;
 		return nearestColor * illumination;
 	}
 
-	return glm::vec3(0.0f); // Return black if we did not intersect any geometry
+	// If the ray did not hit any geometry it hits the skybox
+	if (m_SkydomeData.size() > 0) {
+		const float u = 1 + glm::atan(ray.direction().x, -ray.direction().z) * M_1_PI;
+		const float v = acos(ray.direction().y) * M_1_PI;
+
+		const size_t width = round(u * m_SkydomeWidth);
+		const size_t height = round(v * m_SkydomeHeight);
+
+		return glm::clamp(m_SkydomeData[glm::min(height * m_SkydomeHeight * 2 + width, m_SkydomeData.size() - 1)], 0.0f, 1.0f);
+	}
+	
+	return glm::vec3(0.04f, 0.03f, 0.08f); // If there is no skybox, return a pretty dark color
 }
 
 const std::vector<uint8_t>& EasyCore::nextFrame() {
 	for (uint32_t y = 0; y < m_FrameHeight; y++) {
 		for (uint32_t x = 0; x < m_FrameWidth; x++) {
-			uint32_t i = 3 * (y * m_FrameWidth + x);
+			const uint32_t i = 3 * (y * m_FrameWidth + x);
 
-			float u = (x + 0.5f) / m_FrameWidth;
-			float v = (y + 0.5f) / m_FrameHeight;
+			const float u = (x + 0.5f) / m_FrameWidth;
+			const float v = (y + 0.5f) / m_FrameHeight;
 
 			Ray ray = m_Camera.getRay(u, v);
 			glm::vec3 color = rayColor(ray);
