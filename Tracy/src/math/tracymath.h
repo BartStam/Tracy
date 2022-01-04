@@ -1,9 +1,11 @@
 #pragma once
 
 #define EPS std::numeric_limits<float>::epsilon()
+#define FPI glm::pi<float>()
+#define INVPI glm::one_over_pi<float>()
 
 namespace tmath {
-    bool intersectSphere(const Ray& ray, const glm::vec3& center, float radius, float& t) {
+    inline bool intersectSphere(const Ray& ray, const glm::vec3& center, float radius, float& t) {
         const glm::vec3 oc = ray.origin() - center;
 
         const float a = glm::dot(ray.direction(), ray.direction());
@@ -50,7 +52,7 @@ namespace tmath {
 
     // Möller–Trumbore intersection algorithm
     // Source: https://wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-    bool intersectTriangle(const Ray& ray, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, float& t) {
+    inline bool intersectTriangle(const Ray& ray, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, float& t) {
         const glm::vec3 edge1 = v1 - v0;
         const glm::vec3 edge2 = v2 - v0;
         const glm::vec3 h = glm::cross(ray.direction(), edge2);
@@ -60,7 +62,7 @@ namespace tmath {
             return false; // Ray is parallel to the triangle
         }
             
-        const float f = 1.0 / a;
+        const float f = 1.0f / a;
         const glm::vec3 s = ray.origin() - v0;
         const float u = f * glm::dot(s, h);
 

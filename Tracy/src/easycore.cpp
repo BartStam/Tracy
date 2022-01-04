@@ -1,12 +1,10 @@
 #include "pch.h"
-#include "easycore.h"
-#include "math/tracymath.h"
 
 EasyCore::EasyCore(uint32_t windowWidth, uint32_t windowHeight)
 	: m_FrameWidth(windowWidth)
 	, m_FrameHeight(windowHeight) {
 	m_Frame.resize(3 * windowWidth * windowHeight, 0);
-	m_Camera = Camera(windowWidth, windowHeight, 120, glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+	m_Camera = Camera(windowWidth, windowHeight, 120, glm::vec3(-6.0f, 4.0f, 2.0f), glm::vec3(1.0f, -1.0f, 0.0f));
 }
 
 void EasyCore::setSphereData(const std::vector<Sphere>& spheres) {
@@ -32,6 +30,7 @@ void EasyCore::setSkydomeData(const std::string& path) {
 		return;
 	}
 
+	stbi_set_flip_vertically_on_load(true);
 	uint8_t* skydomeData = stbi_load(path.c_str(), &width, &height, &channels, 3);
 
 	// m_SkydomeWidth and m_SkydomeHeight remain unchanged if data failed to load
@@ -42,7 +41,7 @@ void EasyCore::setSkydomeData(const std::string& path) {
 		m_SkydomeData.reserve(m_SkydomeWidth * m_SkydomeHeight);
 
 		// Convert [0, 255] channel values to [0.0f, 1.0f]
-		for (uint32_t i = 0; i < m_SkydomeWidth * m_SkydomeHeight; i++) {
+		for (int i = 0; i < m_SkydomeWidth * m_SkydomeHeight; i++) {
 			glm::vec3 color(skydomeData[3 * i] / 255.0f, skydomeData[3 * i + 1] / 255.0f, skydomeData[3 * i + 2] / 255.0f);
 			m_SkydomeData.push_back(color);
 		}
@@ -99,8 +98,8 @@ glm::vec3 EasyCore::rayColor(const Ray& ray) const {
 
 	// If the ray did not hit any geometry it hits the skybox
 	if (m_SkydomeData.size() > 0) {
-		const float u = 1 + glm::atan(ray.direction().x, -ray.direction().z) * M_1_PI;
-		const float v = acos(ray.direction().y) * M_1_PI;
+		const float u = 1 + glm::atan(ray.direction().x, -ray.direction().z) * INVPI;
+		const float v = acos(ray.direction().y) * INVPI;
 
 		const size_t width = round(u * m_SkydomeWidth);
 		const size_t height = round(v * m_SkydomeHeight);

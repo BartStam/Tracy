@@ -2,77 +2,63 @@
 
 class Camera {
 public:
-	Camera()
-		: m_Origin(glm::vec3(0.0f))
-		, m_LowerLeftCorner(glm::vec3(-0.5, -0.5, 1.0f))
-		, m_Horizontal(glm::vec3(1.0f, 0.0f, 0.0f))
-		, m_Vertical(glm::vec3(0.0f, 1.0f, 0.0f)) {}
+	Camera() = default;
 
-	Camera(uint32_t frameWidth, uint32_t frameHeight, float fieldOfView, const glm::vec3& origin, const glm::vec3& direction) : m_Origin(origin) {
-		glm::vec3 normalizedDirection = glm::normalize(direction); // Make sure the direction vector is normalized before use
-		glm::vec3 initialDirection = glm::vec3(0.0f, 0.0f, 1.0f); // Direction that the viewport faces prior to rotation
+	Camera(uint32_t frameWidth, uint32_t frameHeight, float fieldOfView, const glm::vec3& origin, const glm::vec3& direction)
+		: m_ViewportWidth(static_cast<float>(frameWidth))
+		, m_ViewportHeight(static_cast<float>(frameHeight))
+		, m_FieldOfView(fieldOfView)
+		, m_Position(origin)
+		, m_Direction(glm::normalize(direction)) {
+		const glm::vec3 perpendicularH = glm::normalize(glm::cross(m_Direction, glm::vec3(0.0f, 1.0f, 0.0f)));
+		const glm::vec3 perpendicularV = glm::normalize(glm::cross(m_Direction, -perpendicularH));
 
-		float viewportHeight = frameHeight;
-		float viewportWidth = frameWidth;
-
-		// First establish the viewport centered in the origin, facing in direction (0, 0, 1)
-		// These are defined as vec4 so they can be transformed using a 4x4 rotation matrix
-		glm::vec4 lowerLeftCorner = glm::vec4(-viewportWidth * 0.5f, -viewportHeight * 0.5f, 0.0f, 1.0f);
-		glm::vec4 horizontal = glm::vec4(viewportWidth, 0.0f, 0.0f, 0.0f);
-		glm::vec4 vertical = glm::vec4(0.0f, viewportHeight, 0.0f, 0.0f);
-
-		// Rotate the viewport to face the desired direction
-		// Only do this if it is not already facing said direction
-		if (!glm::all(glm::equal(initialDirection, normalizedDirection))) {
-			glm::vec3 rotationVector = glm::cross(initialDirection, normalizedDirection);
-			float rotationAngle = glm::radians(90.0f - glm::dot(initialDirection, normalizedDirection) * 90.0f);
-			glm::mat4 rotationMatrix = glm::rotate(rotationAngle, rotationVector);
-
-			lowerLeftCorner = rotationMatrix * lowerLeftCorner;
-			horizontal = rotationMatrix * horizontal;
-			vertical = rotationMatrix * vertical;
-		}
-		
-		m_LowerLeftCorner = glm::vec3(lowerLeftCorner);
-		m_Horizontal = glm::vec3(horizontal);
-		m_Vertical = glm::vec3(vertical);
+		m_Horizontal = (float)frameWidth * perpendicularH;
+		m_Vertical = (float)frameHeight * perpendicularV;
 
 		// Calculate focal length based on field of view
-		float focalLength = (viewportWidth * 0.5f) / glm::tan(M_PI * fieldOfView / 360);
+		const float focalLength = (frameWidth * 0.5f) / glm::tan(FPI * fieldOfView / 360);
 
-		// Translate viewport to its desired origin + focal length
-		m_LowerLeftCorner += origin;
-		m_LowerLeftCorner += focalLength * normalizedDirection;
+		m_LowerLeftCorner = focalLength * m_Direction - 0.5f * m_Horizontal - 0.5f * m_Vertical;
 	}
 
+	// Return the ray that passes from the camera position through a (u, v) coordinate of the viewport
 	Ray getRay(float u, float v) {
-		return Ray(m_Origin, m_LowerLeftCorner + u * m_Horizontal + v * m_Vertical - m_Origin);
+		return Ray(m_Position, m_LowerLeftCorner + u * m_Horizontal + v * m_Vertical - m_Position);
 	}
 
 	void setFieldOfView(float degrees) {
+		m_FieldOfView = fmod(degrees, 359.0f);
+	}
+
+	// Tilt the camera by an angle (in radians)
+	// Positive values tilt the camera upwards
+	void tilt(float angle) {
 
 	}
 
-	void tilt(float degrees) {
+	// Pan the camera by an angle (in radians)
+	void pan(float angle) {
 
 	}
 
-	void pan(float degrees) {
-
-	}
-
-	void zoom(float distance) {
-
-	}
-
-	const glm::vec3& origin() { return m_Origin; }
+	const glm::vec3& position() { return m_Position; }
 	const glm::vec3& lowerLeftCorner() { return m_LowerLeftCorner; }
 	const glm::vec3& horizontal() { return m_Horizontal; }
 	const glm::vec3& vertical() { return m_Vertical; }
-
 private:
-	// World space positions
-	glm::vec3 m_Origin;
+	// Sets m_LowerLeftCorner, m_Horizontal, and m_Vertical based on m_ViewportWidth, m_ViewportHeight, m_FieldOfView,
+	// m_Origin, and m_Direction. This function is called in tilt(), pan(), move(), and setFieldOfView().
+	void setPoints(float origin, float tiltAngle) {
+
+	}
+	
+	float m_ViewportWidth;
+	float m_ViewportHeight;
+	float m_FieldOfView;
+	glm::vec3 m_Position;
+	glm::vec3 m_Direction;
+
 	glm::vec3 m_LowerLeftCorner;
 	glm::vec3 m_Horizontal;
 	glm::vec3 m_Vertical;

@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "easycore.h"
 
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {

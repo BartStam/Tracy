@@ -24,5 +24,7 @@
 
 #include "shader.h"
 #include "math/ray.h"
+#include "math/tracymath.h"
 #include "camera.h"
 #include "rendercore.h"
+#include "easycore.h"
