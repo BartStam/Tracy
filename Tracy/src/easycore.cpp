@@ -52,6 +52,44 @@ void EasyCore::setSkydomeData(const std::string& path) {
 	stbi_image_free(skydomeData);
 }
 
+void EasyCore::processInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+	
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		m_Camera.tilt(FPI / 180.0f);
+	}
+	
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		m_Camera.pan(-FPI / 180.0f);
+	}
+	
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		m_Camera.tilt(-FPI / 180.0f);
+	}
+	
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		m_Camera.pan(FPI / 180.0f);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		m_Camera.move(glm::vec2(0.0f, 1.0f));
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		m_Camera.move(glm::vec2(-1.0f, 0.0f));
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		m_Camera.move(glm::vec2(0.0f, -1.0f));
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		m_Camera.move(glm::vec2(1.0f, 0.0f));
+	}
+}
+
 glm::vec3 EasyCore::rayColor(const Ray& ray) const {
 	float t;
 	float nearestT = FLT_MAX; // Distance to nearest intersection
@@ -101,8 +139,8 @@ glm::vec3 EasyCore::rayColor(const Ray& ray) const {
 		const float u = 1 + glm::atan(ray.direction().x, -ray.direction().z) * INVPI;
 		const float v = acos(ray.direction().y) * INVPI;
 
-		const size_t width = round(u * m_SkydomeWidth);
-		const size_t height = round(v * m_SkydomeHeight);
+		const size_t width = (size_t)round(u * m_SkydomeWidth);
+		const size_t height = (size_t)round(v * m_SkydomeHeight);
 
 		return glm::clamp(m_SkydomeData[glm::min(height * m_SkydomeHeight * 2 + width, m_SkydomeData.size() - 1)], 0.0f, 1.0f);
 	}

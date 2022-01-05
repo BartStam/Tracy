@@ -8,8 +8,8 @@ public:
 	void setPointLightData(const std::vector<glm::vec3>& pointLight) override;
 	void setSkydomeData(const std::string& path);
 
+	void processInput(GLFWwindow* window) override;
 	const std::vector<uint8_t>& nextFrame() override;
-
 private:
 	// Floor quad data
 	glm::vec3 m_FloorColor = glm::vec3(0.5f, 0.5f, 0.6f);
@@ -26,7 +26,7 @@ private:
 
 	// Skydome (texture must have exactly 2:1 aspect ratio)
 	std::vector<glm::vec3> m_SkydomeData;
-	int m_SkydomeWidth = 0;
+	int m_SkydomeWidth = 0; // Signed int because that's what is used by stb_image
 	int m_SkydomeHeight = 0;
 
 	// Frame
