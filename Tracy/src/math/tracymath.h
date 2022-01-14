@@ -86,4 +86,16 @@ namespace tmath {
             return false; // Line intersection but no ray intersection.
         } 
     }
+
+    inline glm::vec3 triangleNormal(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) {
+        return glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    }
+
+    inline glm::vec3 randomPointOnTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) {
+        float a = glm::linearRand(0.0f, 1.0f);
+        float b = glm::linearRand(0.0f, 1.0f);
+
+        if (a + b > 1.0f) { a = 1 - a; b = 1 - b; }
+        return v0 + a * (v1 - v0) + b * (v2 - v0);
+    }
 }

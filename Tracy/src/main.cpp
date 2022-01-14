@@ -85,11 +85,31 @@ int main() {
     // Render core
     EasyCore renderCore(windowWidth, windowHeight);
 
+    // Spheres
     std::vector<Sphere> sphereData;
     Sphere sphere1{glm::vec3(0.0f, 1.0f, 2.0f), 1.0f, glm::vec3(1.0f, 0.0f, 0.5f)};
     sphereData.push_back(sphere1);
-    renderCore.setSphereData(sphereData);
+    
+    // Floor
+    std::vector<Triangle> triangleData;
+    glm::vec3 v0 = glm::vec3( 5.0f, 0.0f,  5.0f);
+    glm::vec3 v1 = glm::vec3( 5.0f, 0.0f, -5.0f);
+    glm::vec3 v2 = glm::vec3(-5.0f, 0.0f,  5.0f);
+    glm::vec3 n = tmath::triangleNormal(v0, v1, v2);
+    glm::vec3 c = glm::vec3(0.5f, 0.5, 0.65f);
+    Triangle triangle0{v0, v1, v2, n, c};
+    triangleData.push_back(triangle0);
 
+    v0 = glm::vec3( 5.0f, 0.0f, -5.0f);
+    v1 = glm::vec3(-5.0f, 0.0f, -5.0f);
+    v2 = glm::vec3(-5.0f, 0.0f,  5.0f);
+    n = tmath::triangleNormal(v0, v1, v2);
+    c = glm::vec3(0.5f, 0.5, 0.65f);
+    Triangle triangle1{ v0, v1, v2, n, c };
+    triangleData.push_back(triangle1);
+
+    renderCore.setSphereData(sphereData);
+    renderCore.setTriangleData(triangleData);
     renderCore.setSkydomeData("res/textures/skydome3.png");
 
     // Draw loop

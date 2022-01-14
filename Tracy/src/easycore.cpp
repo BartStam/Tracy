@@ -11,6 +11,10 @@ void EasyCore::setSphereData(const std::vector<Sphere>& spheres) {
 	m_SphereData = spheres;
 }
 
+void EasyCore::setTriangleData(const std::vector<Triangle>& triangles) {
+	m_TriangleData = triangles;
+}
+
 void EasyCore::setPointLightData(const std::vector<glm::vec3>& pointLight) {
 
 }
@@ -110,20 +114,15 @@ glm::vec3 EasyCore::rayColor(const Ray& ray) const {
 		}
 	}
 
-	// Intersect floor quad
-	if (tmath::intersectTriangle(ray, m_FloorQuad[0], m_FloorQuad[1], m_FloorQuad[3], t)) {
-		if (t < nearestT) {
-			nearestT = t;
-			nearestIntersection = ray.at(t);
-			nearestNormal = m_FloorNormal;
-			nearestColor = m_FloorColor;
-		}
-	} else if (tmath::intersectTriangle(ray, m_FloorQuad[1], m_FloorQuad[2], m_FloorQuad[3], t)) { // Ray can't intersect both floor triangles
-		if (t < nearestT) {
-			nearestT = t;
-			nearestIntersection = ray.at(t);
-			nearestNormal = m_FloorNormal;
-			nearestColor = m_FloorColor;
+	// Intersect triangles
+	for (const Triangle& triangle : m_TriangleData) {
+		if (tmath::intersectTriangle(ray, triangle.vertex0, triangle.vertex1, triangle.vertex2, t)) {
+			if (t < nearestT) {
+				nearestT = t;
+				nearestIntersection = ray.at(t);
+				nearestNormal = triangle.normal;
+				nearestColor = triangle.color;
+			}
 		}
 	}
 
