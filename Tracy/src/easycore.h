@@ -29,6 +29,7 @@ private:
 	const uint32_t m_FrameWidth;
 
 	Camera m_Camera;
+	uint32_t m_SamplesPerPixel = 256;
 
 	const HitRecord trace(const Ray& ray, uint32_t depth = 1) const;
 };

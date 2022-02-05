@@ -128,23 +128,32 @@ const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
 
 	// If we intersected any geometry
 	if (nearestT < FLT_MAX) {
-		glm::vec3 color = nearestMaterial.color;
-
-		nearestIntersection += nearestNormal * EPS; // Slightly offset the intersection to make sure it's outside of the geometry
-		const float r = glm::length(nearestIntersection - ray.origin()); // Recalculate after the offset instead of using nearestT
-		const float L = 1.0f / (r * r); // Radiance
-
 		
-		if (depth > 1) {
-			// Diffuse bounce
-			const glm::vec3 diffuseDirection = nearestIntersection + nearestNormal + glm::sphericalRand(1.0f);
-			const Ray diffuseRay(nearestIntersection, diffuseDirection);
+		nearestIntersection += nearestNormal * EPS; // Slightly offset the intersection to make sure it's outside of the geometry
+		nearestT = glm::length(nearestIntersection - ray.origin()); // Recalculate the intersection distance after offsetting
 
+		if (nearestMaterial.isEmissive()) {
+			return { nearestMaterial.color, nearestT }; // If we hit a light, do not bounce any further
+		} else if (depth > 1) {
+			glm::vec3 incomingLight = glm::vec3(0.0f, 0.0f, 0.0f);
+
+			// Diffuse bounce
+			const glm::vec3 diffuseDirection = glm::sphericalRand(1.0f);
+			const Ray diffuseRay(nearestIntersection, diffuseDirection);
+			const HitRecord diffuseHitRecord = trace(diffuseRay, depth - 1);
+
+			const float theta = glm::acos(glm::dot(diffuseRay.direction(), nearestNormal)); // Angle between incoming light and surface
+			const float L = 1.0f / (diffuseHitRecord.distance * diffuseHitRecord.distance); // Account for distance to the light
+			const float E = L * glm::cos(theta);											// Account for the light coming in at an angle
+
+			incomingLight += 2.0f * FPI * E * diffuseHitRecord.color;
+
+			return { nearestMaterial.color * incomingLight, nearestT };
 		}
 		
 		// Add some test illumination
-		const float illumination = (1.0f - glm::dot(nearestNormal, glm::normalize(glm::vec3(0.5f, -0.5f, 0.2f)))) / 2;
-		return { nearestMaterial.color * illumination, r };
+		//const float illumination = (1.0f - glm::dot(nearestNormal, glm::normalize(glm::vec3(0.5f, -0.5f, 0.2f)))) / 2;
+		//return { nearestMaterial.color * illumination, nearestT };
 	}
 
 	// If the ray did not hit any geometry it hits the skybox
@@ -166,11 +175,21 @@ const std::vector<uint8_t>& EasyCore::nextFrame() {
 		for (uint32_t x = 0; x < m_FrameWidth; x++) {
 			const uint32_t i = 3 * (y * m_FrameWidth + x);
 
-			const float u = (x + 0.5f) / m_FrameWidth;
-			const float v = (y + 0.5f) / m_FrameHeight;
+			glm::vec3 color(0.0f, 0.0f, 0.0f);
 
-			Ray ray = m_Camera.getRay(u, v);
-			glm::vec3 color = trace(ray).color;
+			for (uint32_t c = 0; c < m_SamplesPerPixel; c++) {
+				// Use a random offset for anti-aliasing
+				float xOffset = glm::linearRand(0.0f, 1.0f);
+				float yOffset = glm::linearRand(0.0f, 1.0f);
+
+				const float u = (x + xOffset) / m_FrameWidth;
+				const float v = (y + yOffset) / m_FrameHeight;
+
+				Ray ray = m_Camera.getRay(u, v);
+				color += trace(ray, 2).color;
+			}
+			
+			color /= m_SamplesPerPixel;
 
 			m_Frame[i + 0] = static_cast<uint8_t>(glm::clamp(256 * color.r, 0.0f, 255.99f));
 			m_Frame[i + 1] = static_cast<uint8_t>(glm::clamp(256 * color.g, 0.0f, 255.99f));

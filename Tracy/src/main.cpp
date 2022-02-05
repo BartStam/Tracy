@@ -108,6 +108,23 @@ int main() {
     Triangle triangle1{ v0, v1, v2, n, c };
     triangleData.push_back(triangle1);
 
+    // Overhead light
+    v2 = glm::vec3(5.0f, 5.0f, 5.0f);
+    v1 = glm::vec3(5.0f, 5.0f, -5.0f);
+    v0 = glm::vec3(-5.0f, 5.0f, 5.0f);
+    n = tmath::triangleNormal(v0, v1, v2);
+    c = glm::vec3(100.0f, 100.0f, 100.0f);
+    Triangle triangle2{ v0, v1, v2, n, c };
+    triangleData.push_back(triangle2);
+
+    v2 = glm::vec3(5.0f, 5.0f, -5.0f);
+    v1 = glm::vec3(-5.0f, 5.0f, -5.0f);
+    v0 = glm::vec3(-5.0f, 5.0f, 5.0f);
+    n = tmath::triangleNormal(v0, v1, v2);
+    c = glm::vec3(100.0f, 100.0f, 100.0f);
+    Triangle triangle3{ v0, v1, v2, n, c };
+    triangleData.push_back(triangle3);
+
     renderCore.setSphereData(sphereData);
     renderCore.setTriangleData(triangleData);
     renderCore.setSkydomeData("res/textures/skydome3.png");
