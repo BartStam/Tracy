@@ -11,6 +11,7 @@ public:
 
 	void processInput(GLFWwindow* window) override;
 	const std::vector<uint8_t>& nextFrame() override;
+
 private:
 	// Geometry data
 	std::vector<Sphere> m_SphereData;
@@ -18,6 +19,7 @@ private:
 
 	// Skydome (texture must have exactly 2:1 aspect ratio)
 	std::vector<glm::vec3> m_SkydomeData;
+	float m_SkydomeRadius = 100.0f;
 	int m_SkydomeWidth = 0; // Signed int because that's what is used by stb_image
 	int m_SkydomeHeight = 0;
 
@@ -28,5 +30,5 @@ private:
 
 	Camera m_Camera;
 
-	glm::vec3 rayColor(const Ray& ray) const;
+	const HitRecord trace(const Ray& ray, uint32_t depth = 1) const;
 };

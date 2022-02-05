@@ -1,9 +1,23 @@
 #pragma once
 
+struct Material {
+	glm::vec3 color;
+	float diffuse; // Specularity equals (1 - diffuse)
+
+	bool isEmissive() const {
+		return color.r > 1.0f || color.g > 1.0f || color.b > 1.0f;
+	}
+};
+
+struct HitRecord {
+	glm::vec3 color;
+	float distance;
+};
+
 struct Sphere {
 	glm::vec3 center;
 	float radius;
-	glm::vec3 color;
+	Material material;
 };
 
 struct Triangle {
@@ -11,11 +25,7 @@ struct Triangle {
 	glm::vec3 vertex1;
 	glm::vec3 vertex2;
 	glm::vec3 normal;
-	glm::vec3 color;
-
-	bool isLight() const {
-		return color.r > 1.0f || color.g > 1.0f || color.b > 1.0f;
-	}
+	Material material;
 };
 
 class RenderCore {

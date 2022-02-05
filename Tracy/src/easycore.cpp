@@ -94,12 +94,12 @@ void EasyCore::processInput(GLFWwindow* window) {
 	}
 }
 
-glm::vec3 EasyCore::rayColor(const Ray& ray) const {
-	float t;
+const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
+	float t; // Distance of current intersection test, to be compared to nearestT
 	float nearestT = FLT_MAX; // Distance to nearest intersection
 	glm::vec3 nearestIntersection;
 	glm::vec3 nearestNormal;
-	glm::vec3 nearestColor;
+	Material nearestMaterial;
 
 	// Intersect spheres
 	for (const Sphere& sphere : m_SphereData) {
@@ -109,7 +109,7 @@ glm::vec3 EasyCore::rayColor(const Ray& ray) const {
 				nearestT = t;
 				nearestIntersection = ray.at(t);
 				nearestNormal = glm::normalize(ray.at(t) - sphere.center);
-				nearestColor = sphere.color;
+				nearestMaterial = sphere.material;
 			}
 		}
 	}
@@ -121,16 +121,30 @@ glm::vec3 EasyCore::rayColor(const Ray& ray) const {
 				nearestT = t;
 				nearestIntersection = ray.at(t);
 				nearestNormal = triangle.normal;
-				nearestColor = triangle.color;
+				nearestMaterial = triangle.material;
 			}
 		}
 	}
 
 	// If we intersected any geometry
 	if (nearestT < FLT_MAX) {
+		glm::vec3 color = nearestMaterial.color;
+
+		nearestIntersection += nearestNormal * EPS; // Slightly offset the intersection to make sure it's outside of the geometry
+		const float r = glm::length(nearestIntersection - ray.origin()); // Recalculate after the offset instead of using nearestT
+		const float L = 1.0f / (r * r); // Radiance
+
+		
+		if (depth > 1) {
+			// Diffuse bounce
+			const glm::vec3 diffuseDirection = nearestIntersection + nearestNormal + glm::sphericalRand(1.0f);
+			const Ray diffuseRay(nearestIntersection, diffuseDirection);
+
+		}
+		
 		// Add some test illumination
 		const float illumination = (1.0f - glm::dot(nearestNormal, glm::normalize(glm::vec3(0.5f, -0.5f, 0.2f)))) / 2;
-		return nearestColor * illumination;
+		return { nearestMaterial.color * illumination, r };
 	}
 
 	// If the ray did not hit any geometry it hits the skybox
@@ -141,10 +155,10 @@ glm::vec3 EasyCore::rayColor(const Ray& ray) const {
 		const size_t width = (size_t)round(u * m_SkydomeWidth);
 		const size_t height = (size_t)round(v * m_SkydomeHeight);
 
-		return glm::clamp(m_SkydomeData[glm::min(height * m_SkydomeHeight * 2 + width, m_SkydomeData.size() - 1)], 0.0f, 1.0f);
+		return { glm::clamp(m_SkydomeData[glm::min(height * m_SkydomeHeight * 2 + width, m_SkydomeData.size() - 1)], 0.0f, 1.0f), m_SkydomeRadius };
 	}
 	
-	return glm::vec3(0.04f, 0.03f, 0.08f); // If there is no skybox, return a pretty dark color
+	return { glm::vec3(0.04f, 0.03f, 0.08f), m_SkydomeRadius }; // If there is no skybox, return a pretty dark color
 }
 
 const std::vector<uint8_t>& EasyCore::nextFrame() {
@@ -156,7 +170,7 @@ const std::vector<uint8_t>& EasyCore::nextFrame() {
 			const float v = (y + 0.5f) / m_FrameHeight;
 
 			Ray ray = m_Camera.getRay(u, v);
-			glm::vec3 color = rayColor(ray);
+			glm::vec3 color = trace(ray).color;
 
 			m_Frame[i + 0] = static_cast<uint8_t>(glm::clamp(256 * color.r, 0.0f, 255.99f));
 			m_Frame[i + 1] = static_cast<uint8_t>(glm::clamp(256 * color.g, 0.0f, 255.99f));
