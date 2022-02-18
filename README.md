@@ -1,2 +1,2 @@
 # Tracy
-Simple whitted-style ray tracer using OpenGL.
+Simple path tracer for educational purposes.
