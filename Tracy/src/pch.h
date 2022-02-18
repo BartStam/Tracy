@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <random>
 
 #include <vector>
 #include <tuple>
@@ -20,7 +21,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <glm/gtc/random.hpp>
 #include <glm/gtc/constants.hpp>
 
 #include "shader.h"

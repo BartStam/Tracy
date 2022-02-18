@@ -27,14 +27,12 @@ int main() {
 
     glViewport(0, 0, windowWidth, windowHeight);
 
-    std::cout << glGetString(GL_VERSION) << std::endl; // Print OpenGL version
-
     // Buffers
     const float vertices[] = {
-         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,   // top right
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom right
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,   // bottom left
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f    // top left 
+         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,   // Top right
+         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // Bottom right
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,   // Bottom left
+        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f    // Top left 
     };
 
     const unsigned int indices[] = {
@@ -79,9 +77,6 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    // Shader
-    Shader shader("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
-
     // Render core
     EasyCore renderCore(windowWidth, windowHeight);
 
@@ -113,7 +108,7 @@ int main() {
     v1 = glm::vec3(5.0f, 5.0f, -5.0f);
     v0 = glm::vec3(-5.0f, 5.0f, 5.0f);
     n = tmath::triangleNormal(v0, v1, v2);
-    c = glm::vec3(100.0f, 100.0f, 100.0f);
+    c = glm::vec3(20.0f, 20.0f, 100.0f);
     Triangle triangle2{ v0, v1, v2, n, c };
     triangleData.push_back(triangle2);
 
@@ -121,7 +116,7 @@ int main() {
     v1 = glm::vec3(-5.0f, 5.0f, -5.0f);
     v0 = glm::vec3(-5.0f, 5.0f, 5.0f);
     n = tmath::triangleNormal(v0, v1, v2);
-    c = glm::vec3(100.0f, 100.0f, 100.0f);
+    c = glm::vec3(20.0f, 20.0f, 100.0f);
     Triangle triangle3{ v0, v1, v2, n, c };
     triangleData.push_back(triangle3);
 
@@ -136,8 +131,6 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        shader.use();
-
         std::vector<uint8_t> frame = renderCore.nextFrame();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, frame.data());
 
@@ -149,5 +142,6 @@ int main() {
     }
 
     glfwTerminate();
+
     return 0;
 }

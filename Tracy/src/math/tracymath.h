@@ -91,11 +91,27 @@ namespace tmath {
         return glm::normalize(glm::cross(v1 - v0, v2 - v0));
     }
 
-    inline glm::vec3 randomPointOnTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) {
-        float a = glm::linearRand(0.0f, 1.0f);
-        float b = glm::linearRand(0.0f, 1.0f);
+    // Generates a random point on a triangle (v0, v1, v2)
+    inline glm::vec3 triangleRand(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+        float a = dis(gen);
+        float b = dis(gen);
 
         if (a + b > 1.0f) { a = 1 - a; b = 1 - b; }
         return v0 + a * (v1 - v0) + b * (v2 - v0);
+    }
+
+    // Generates a random point whose coordinates are regulary distributed on a sphere of a given radius
+    inline glm::vec3 sphericalRand(float radius = 1.0f) {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::normal_distribution<float> dis(0.0f, 1.0f);
+
+        glm::vec3 randomVec = glm::vec3(dis(gen), dis(gen), dis(gen));
+
+        return glm::normalize(randomVec) * radius;
     }
 }
