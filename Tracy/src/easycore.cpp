@@ -138,7 +138,7 @@ const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
 			glm::vec3 incomingLight = glm::vec3(0.0f, 0.0f, 0.0f);
 
 			// Diffuse bounce
-			// Lambert's cosine law is taken care of by the PDF
+			// Lambert's cosine law is taken care of by sampling the diffuse lobe
 			const glm::vec3 diffuseDirection = nearestNormal + tmath::sphericalRand();
 			const Ray diffuseRay(nearestIntersection, diffuseDirection);
 			const HitRecord diffuseHitRecord = trace(diffuseRay, depth - 1);
