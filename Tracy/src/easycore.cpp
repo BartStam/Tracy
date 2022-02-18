@@ -96,8 +96,6 @@ void EasyCore::processInput(GLFWwindow* window) {
 }
 
 const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
-	// NEE branch
-
 	float t; // Distance of current intersection test, to be compared to nearestT
 	float nearestT = FLT_MAX; // Distance to nearest intersection
 	glm::vec3 nearestIntersection;
