@@ -1,19 +1,51 @@
 #include "pch.h"
+#include "easycore.h"
 
 EasyCore::EasyCore(uint32_t windowWidth, uint32_t windowHeight)
 	: m_FrameWidth(windowWidth)
 	, m_FrameHeight(windowHeight) {
 	m_Frame.resize(3 * windowWidth * windowHeight, 0);
 	m_Camera = Camera(windowWidth, windowHeight, 120, glm::vec3(-6.0f, 4.0f, 2.0f), glm::vec3(1.0f, -1.0f, 0.0f));
-	m_Shader = Shader("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
+	m_Shader = Shader("src/cores/easycore/vertex_shader.glsl", "src/cores/easycore/fragment_shader.glsl");
 }
 
-void EasyCore::setSphereData(const std::vector<Sphere>& spheres) {
-	m_SphereData = spheres;
+void EasyCore::setMaterialData(const std::vector<CoreMaterial>& materials) {
+	m_MaterialData.reserve(materials.size());
+
+	for (const CoreMaterial& coreMaterial : materials) {
+		Material material{};
+		material.color = coreMaterial.color;
+
+		m_MaterialData.push_back(material);
+	}
 }
 
-void EasyCore::setTriangleData(const std::vector<Triangle>& triangles) {
-	m_TriangleData = triangles;
+void EasyCore::setSphereData(const std::vector<CoreSphere>& spheres) {
+	m_SphereData.reserve(spheres.size());
+
+	for (const CoreSphere& coreSphere : spheres) {
+		Sphere sphere{};
+		sphere.center = coreSphere.center;
+		sphere.radius = coreSphere.radius;
+		sphere.materialIndex = coreSphere.materialIndex;
+
+		m_SphereData.push_back(sphere);
+	}
+}
+
+void EasyCore::setTriangleData(const std::vector<CoreTriangle>& triangles) {
+	m_TriangleData.reserve(triangles.size());
+
+	for (const CoreTriangle& coreTriangle : triangles) {
+		Triangle triangle{};
+		triangle.vertex0 = coreTriangle.vertex0;
+		triangle.vertex1 = coreTriangle.vertex1;
+		triangle.vertex2 = coreTriangle.vertex2;
+		triangle.normal = coreTriangle.normal;
+		triangle.materialIndex = coreTriangle.materialIndex;
+
+		m_TriangleData.push_back(triangle);
+	}
 }
 
 void EasyCore::setPointLightData(const std::vector<glm::vec3>& pointLight) {
@@ -110,7 +142,7 @@ const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
 				nearestT = t;
 				nearestIntersection = ray.at(t);
 				nearestNormal = glm::normalize(ray.at(t) - sphere.center);
-				nearestMaterial = sphere.material;
+				nearestMaterial = m_MaterialData[sphere.materialIndex];
 			}
 		}
 	}
@@ -122,7 +154,7 @@ const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
 				nearestT = t;
 				nearestIntersection = ray.at(t);
 				nearestNormal = triangle.normal;
-				nearestMaterial = triangle.material;
+				nearestMaterial = m_MaterialData[triangle.materialIndex];
 			}
 		}
 	}
@@ -185,7 +217,7 @@ const HitRecord EasyCore::traceIS(const Ray& ray, uint32_t depth) const {
 				nearestT = t;
 				nearestIntersection = ray.at(t);
 				nearestNormal = glm::normalize(ray.at(t) - sphere.center);
-				nearestMaterial = sphere.material;
+				nearestMaterial = m_MaterialData[sphere.materialIndex];
 			}
 		}
 	}
@@ -197,7 +229,7 @@ const HitRecord EasyCore::traceIS(const Ray& ray, uint32_t depth) const {
 				nearestT = t;
 				nearestIntersection = ray.at(t);
 				nearestNormal = triangle.normal;
-				nearestMaterial = triangle.material;
+				nearestMaterial = m_MaterialData[triangle.materialIndex];
 			}
 		}
 	}
@@ -279,7 +311,6 @@ const std::vector<uint8_t>& EasyCore::nextFrame() {
 	}
 
 	std::cout << "(" << m_SamplesPerPixel << "," << totalB << ")";
-	m_SamplesPerPixel++;
 
 	return m_Frame;
 }

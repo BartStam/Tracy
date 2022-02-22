@@ -1,5 +1,8 @@
 #pragma once
 
+#include "math/ray.h"
+#include "math/tracymath.h"
+
 class Camera {
 public:
 	Camera() = default;

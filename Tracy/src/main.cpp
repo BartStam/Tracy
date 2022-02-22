@@ -1,42 +1,7 @@
 #include "pch.h"
+#include "cores/easycore/easycore.h"
 
 int main() {
-#if 0
-    const uint32_t samples = 10'000'000;
-    const glm::vec3 N = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    // Lobe
-    float lobeBuckets[101]{};
-
-    for (uint32_t i{}; i < samples; i++) {
-        const glm::vec3 rand = tmath::sphericalRand();
-        const glm::vec3 d = glm::normalize(N + rand);
-
-        const float dot = glm::dot(N, d);
-
-        lobeBuckets[(uint32_t)(dot * 100)] += 1.0f;
-    }
-
-    std::cout << "Lobe:" << std::endl;
-    for (uint32_t i{}; i < 100; i++) {
-        std::cout << "(" << i/100.0f << "," << lobeBuckets[i] / samples << ")";
-    }
-
-    // Hemisphere
-    float hemisphereBuckets[101]{};
-
-    for (uint32_t i{}; i < samples; i++) {
-        glm::vec3 rand = tmath::sphericalRand();
-        const float dot = glm::dot(N, rand);
-
-        hemisphereBuckets[(uint32_t)(glm::abs(dot) * 100)] += glm::abs(dot);
-    }
-
-    std::cout << "\n\nHemisphere:" << std::endl;
-    for (uint32_t i{}; i < 100; i++) {
-        std::cout << "(" << i/100.0f << "," << hemisphereBuckets[i] / samples << ")";
-    }
-#else
     int windowWidth = 960;
     int windowHeight = 540;
 
@@ -116,27 +81,36 @@ int main() {
     // Render core
     EasyCore renderCore(windowWidth, windowHeight);
 
+    // Materials
+    std::vector<CoreMaterial> materialData;
+    CoreMaterial sphereMaterial{ glm::vec3(1.0f, 0.0f, 0.5f), 1.0f };
+    materialData.push_back(sphereMaterial);
+
+    CoreMaterial floorMaterial{ glm::vec3(0.5f, 0.5, 0.65f), 1.0f };
+    materialData.push_back(floorMaterial);
+
+    CoreMaterial lightMaterial{ glm::vec3(8.0f, 8.0f, 20.0f), 1.0f };
+    materialData.push_back(lightMaterial);
+
     // Spheres
-    std::vector<Sphere> sphereData;
-    Sphere sphere1{glm::vec3(0.0f, 1.0f, 2.0f), 1.0f, glm::vec3(1.0f, 0.0f, 0.5f)};
+    std::vector<CoreSphere> sphereData;
+    CoreSphere sphere1{glm::vec3(0.0f, 1.0f, 2.0f), 1.0f, 0};
     sphereData.push_back(sphere1);
     
     // Floor
-    std::vector<Triangle> triangleData;
+    std::vector<CoreTriangle> triangleData;
     glm::vec3 v0 = glm::vec3( 5.0f, 0.0f,  5.0f);
     glm::vec3 v1 = glm::vec3( 5.0f, 0.0f, -5.0f);
     glm::vec3 v2 = glm::vec3(-5.0f, 0.0f,  5.0f);
     glm::vec3 n = tmath::triangleNormal(v0, v1, v2);
-    glm::vec3 c = glm::vec3(0.5f, 0.5, 0.65f);
-    Triangle triangle0{v0, v1, v2, n, c};
+    CoreTriangle triangle0{ v0, v1, v2, n, 1 };
     triangleData.push_back(triangle0);
 
     v0 = glm::vec3( 5.0f, 0.0f, -5.0f);
     v1 = glm::vec3(-5.0f, 0.0f, -5.0f);
     v2 = glm::vec3(-5.0f, 0.0f,  5.0f);
     n = tmath::triangleNormal(v0, v1, v2);
-    c = glm::vec3(0.5f, 0.5, 0.65f);
-    Triangle triangle1{ v0, v1, v2, n, c };
+    CoreTriangle triangle1{ v0, v1, v2, n, 1 };
     triangleData.push_back(triangle1);
 
     // Overhead light
@@ -144,18 +118,17 @@ int main() {
     v1 = glm::vec3(5.0f, 5.0f, -5.0f);
     v0 = glm::vec3(-5.0f, 5.0f, 5.0f);
     n = tmath::triangleNormal(v0, v1, v2);
-    c = glm::vec3(8.0f, 8.0f, 20.0f);
-    Triangle triangle2{ v0, v1, v2, n, c };
+    CoreTriangle triangle2{ v0, v1, v2, n, 2 };
     triangleData.push_back(triangle2);
 
     v2 = glm::vec3(5.0f, 5.0f, -5.0f);
     v1 = glm::vec3(-5.0f, 5.0f, -5.0f);
     v0 = glm::vec3(-5.0f, 5.0f, 5.0f);
     n = tmath::triangleNormal(v0, v1, v2);
-    c = glm::vec3(8.0f, 8.0f, 20.0f);
-    Triangle triangle3{ v0, v1, v2, n, c };
+    CoreTriangle triangle3{ v0, v1, v2, n, 2 };
     triangleData.push_back(triangle3);
 
+    renderCore.setMaterialData(materialData);
     renderCore.setSphereData(sphereData);
     renderCore.setTriangleData(triangleData);
     renderCore.setSkydomeData("res/textures/skydome3.png");
@@ -178,6 +151,6 @@ int main() {
     }
 
     glfwTerminate();
-#endif
+
     return 0;
 }

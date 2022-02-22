@@ -1,11 +1,43 @@
 #pragma once
 
+#include "rendercore.h"
+#include "shader.h"
+#include "camera.h"
+
+struct HitRecord {
+	glm::vec3 color;
+	float distance;
+};
+
+struct Material {
+	glm::vec3 color;
+
+	bool isEmissive() const {
+		return color.r > 1.0f || color.g > 1.0f || color.b > 1.0f;
+	}
+};
+
+struct Sphere {
+	glm::vec3 center;
+	float radius;
+	uint32_t materialIndex;
+};
+
+struct Triangle {
+	glm::vec3 vertex0;
+	glm::vec3 vertex1;
+	glm::vec3 vertex2;
+	glm::vec3 normal;
+	uint32_t materialIndex;
+};
+
 class EasyCore : public RenderCore {
 public:
 	EasyCore(uint32_t windowWidth, uint32_t windowHeight);
 
-	void setSphereData(const std::vector<Sphere>& spheres) override;
-	void setTriangleData(const std::vector<Triangle>& triangles) override;
+	void setMaterialData(const std::vector<CoreMaterial>& materials) override;
+	void setSphereData(const std::vector<CoreSphere>& spheres) override;
+	void setTriangleData(const std::vector<CoreTriangle>& triangles) override;
 	void setPointLightData(const std::vector<glm::vec3>& pointLight) override;
 	void setSkydomeData(const std::string& path);
 
@@ -17,6 +49,7 @@ private:
 	Shader m_Shader; // Vertex + fragment shader pair
 
 	// Geometry data
+	std::vector<Material> m_MaterialData;
 	std::vector<Sphere> m_SphereData;
 	std::vector<Triangle> m_TriangleData;
 
@@ -32,7 +65,7 @@ private:
 	const uint32_t m_FrameWidth;
 
 	Camera m_Camera;
-	uint32_t m_SamplesPerPixel = 2048;
+	uint32_t m_SamplesPerPixel = 4;
 
 	const HitRecord trace(const Ray& ray, uint32_t depth = 1) const;
 	const HitRecord traceIS(const Ray& ray, uint32_t depth = 1) const;

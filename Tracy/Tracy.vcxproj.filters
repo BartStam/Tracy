@@ -27,7 +27,7 @@
     <ClCompile Include="vendor\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\easycore.cpp">
+    <ClCompile Include="src\cores\easycore\easycore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,7 +44,7 @@
     <ClInclude Include="src\rendercore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\easycore.h">
+    <ClInclude Include="src\cores\easycore\easycore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\math\ray.h">
@@ -58,7 +58,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\shaders\fragment_shader.glsl" />
-    <None Include="src\shaders\vertex_shader.glsl" />
+    <None Include="src\cores\easycore\fragment_shader.glsl" />
+    <None Include="src\cores\easycore\vertex_shader.glsl" />
   </ItemGroup>
 </Project>

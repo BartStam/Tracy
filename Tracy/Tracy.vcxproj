@@ -61,7 +61,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendor;$(SolutionDir)Dependencies\Glad\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\GLFW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)vendor;$(SolutionDir)Dependencies\Glad\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\GLFW\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -81,7 +81,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendor;$(SolutionDir)Dependencies\Glad\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\GLFW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)vendor;$(SolutionDir)Dependencies\Glad\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\GLFW\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -94,7 +94,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\easycore.cpp" />
+    <ClCompile Include="src\cores\easycore\easycore.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -117,7 +117,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera.h" />
-    <ClInclude Include="src\easycore.h" />
+    <ClInclude Include="src\cores\easycore\easycore.h" />
     <ClInclude Include="src\math\tracymath.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\math\ray.h" />
@@ -126,8 +126,8 @@
     <ClInclude Include="vendor\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\shaders\fragment_shader.glsl" />
-    <None Include="src\shaders\vertex_shader.glsl" />
+    <None Include="src\cores\easycore\fragment_shader.glsl" />
+    <None Include="src\cores\easycore\vertex_shader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
