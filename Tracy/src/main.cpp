@@ -1,6 +1,42 @@
 #include "pch.h"
 
 int main() {
+#if 0
+    const uint32_t samples = 10'000'000;
+    const glm::vec3 N = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    // Lobe
+    float lobeBuckets[101]{};
+
+    for (uint32_t i{}; i < samples; i++) {
+        const glm::vec3 rand = tmath::sphericalRand();
+        const glm::vec3 d = glm::normalize(N + rand);
+
+        const float dot = glm::dot(N, d);
+
+        lobeBuckets[(uint32_t)(dot * 100)] += 1.0f;
+    }
+
+    std::cout << "Lobe:" << std::endl;
+    for (uint32_t i{}; i < 100; i++) {
+        std::cout << "(" << i/100.0f << "," << lobeBuckets[i] / samples << ")";
+    }
+
+    // Hemisphere
+    float hemisphereBuckets[101]{};
+
+    for (uint32_t i{}; i < samples; i++) {
+        glm::vec3 rand = tmath::sphericalRand();
+        const float dot = glm::dot(N, rand);
+
+        hemisphereBuckets[(uint32_t)(glm::abs(dot) * 100)] += glm::abs(dot);
+    }
+
+    std::cout << "\n\nHemisphere:" << std::endl;
+    for (uint32_t i{}; i < 100; i++) {
+        std::cout << "(" << i/100.0f << "," << hemisphereBuckets[i] / samples << ")";
+    }
+#else
     int windowWidth = 960;
     int windowHeight = 540;
 
@@ -108,7 +144,7 @@ int main() {
     v1 = glm::vec3(5.0f, 5.0f, -5.0f);
     v0 = glm::vec3(-5.0f, 5.0f, 5.0f);
     n = tmath::triangleNormal(v0, v1, v2);
-    c = glm::vec3(20.0f, 20.0f, 100.0f);
+    c = glm::vec3(8.0f, 8.0f, 20.0f);
     Triangle triangle2{ v0, v1, v2, n, c };
     triangleData.push_back(triangle2);
 
@@ -116,7 +152,7 @@ int main() {
     v1 = glm::vec3(-5.0f, 5.0f, -5.0f);
     v0 = glm::vec3(-5.0f, 5.0f, 5.0f);
     n = tmath::triangleNormal(v0, v1, v2);
-    c = glm::vec3(20.0f, 20.0f, 100.0f);
+    c = glm::vec3(8.0f, 8.0f, 20.0f);
     Triangle triangle3{ v0, v1, v2, n, c };
     triangleData.push_back(triangle3);
 
@@ -142,6 +178,6 @@ int main() {
     }
 
     glfwTerminate();
-
+#endif
     return 0;
 }

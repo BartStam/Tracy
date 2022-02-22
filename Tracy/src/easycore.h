@@ -14,7 +14,7 @@ public:
 
 private:
 	// OpenGL
-	Shader shader; // Vertex + fragment shader pair
+	Shader m_Shader; // Vertex + fragment shader pair
 
 	// Geometry data
 	std::vector<Sphere> m_SphereData;
@@ -32,7 +32,8 @@ private:
 	const uint32_t m_FrameWidth;
 
 	Camera m_Camera;
-	uint32_t m_SamplesPerPixel = 64;
+	uint32_t m_SamplesPerPixel = 2048;
 
 	const HitRecord trace(const Ray& ray, uint32_t depth = 1) const;
+	const HitRecord traceIS(const Ray& ray, uint32_t depth = 1) const;
 };

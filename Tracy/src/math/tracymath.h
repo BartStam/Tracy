@@ -3,6 +3,7 @@
 #define EPS std::numeric_limits<float>::epsilon()
 #define FPI glm::pi<float>()
 #define INVPI glm::one_over_pi<float>()
+#define INV2PI 0.5f * glm::one_over_pi<float>()
 
 namespace tmath {
     inline bool intersectSphere(const Ray& ray, const glm::vec3& center, float radius, float& t) {

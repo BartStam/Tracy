@@ -5,7 +5,7 @@ EasyCore::EasyCore(uint32_t windowWidth, uint32_t windowHeight)
 	, m_FrameHeight(windowHeight) {
 	m_Frame.resize(3 * windowWidth * windowHeight, 0);
 	m_Camera = Camera(windowWidth, windowHeight, 120, glm::vec3(-6.0f, 4.0f, 2.0f), glm::vec3(1.0f, -1.0f, 0.0f));
-	shader = Shader("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
+	m_Shader = Shader("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
 }
 
 void EasyCore::setSphereData(const std::vector<Sphere>& spheres) {
@@ -96,8 +96,6 @@ void EasyCore::processInput(GLFWwindow* window) {
 }
 
 const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
-	// NEE branch
-
 	float t; // Distance of current intersection test, to be compared to nearestT
 	float nearestT = FLT_MAX; // Distance to nearest intersection
 	glm::vec3 nearestIntersection;
@@ -137,19 +135,24 @@ const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
 		if (nearestMaterial.isEmissive()) {
 			return { nearestMaterial.color, nearestT }; // If we hit a light, do not bounce any further
 		} else if (depth > 1) {
-			glm::vec3 incomingLight = glm::vec3(0.0f, 0.0f, 0.0f);
-
 			// Diffuse bounce
-			// Lambert's cosine law is taken care of by sampling the diffuse lobe
-			const glm::vec3 diffuseDirection = nearestNormal + tmath::sphericalRand();
+			glm::vec3 diffuseDirection = tmath::sphericalRand();
+
+			if (glm::dot(diffuseDirection, nearestNormal) < 0.0f) {
+				diffuseDirection = -diffuseDirection;
+			}
+
+			// const glm::vec3 diffuseDirection = nearestNormal + tmath::sphericalRand();
 			const Ray diffuseRay(nearestIntersection, diffuseDirection);
 			const HitRecord diffuseHitRecord = trace(diffuseRay, depth - 1);
 
-			const float L = 1.0f / (diffuseHitRecord.distance * diffuseHitRecord.distance); // Account for distance to the light
+			const glm::vec3 BRDF = nearestMaterial.color * INVPI;
+			const float invPDF = 2.0f * FPI;
 
-			incomingLight += L * diffuseHitRecord.color;
+			const glm::vec3 L = diffuseHitRecord.color / (diffuseHitRecord.distance * diffuseHitRecord.distance); // Account for distance to the light
+			const glm::vec3 E = L * glm::dot(diffuseDirection, nearestNormal) * invPDF;
 
-			return { nearestMaterial.color * incomingLight, nearestT };
+			return { 2.0f * FPI * BRDF * E, nearestT };
 		}
 	}
 
@@ -167,17 +170,80 @@ const HitRecord EasyCore::trace(const Ray& ray, uint32_t depth) const {
 	return { glm::vec3(0.04f, 0.03f, 0.08f), m_SkydomeRadius }; // If there is no skybox, return a pretty dark color
 }
 
+const HitRecord EasyCore::traceIS(const Ray& ray, uint32_t depth) const {
+	float t; // Distance of current intersection test, to be compared to nearestT
+	float nearestT = FLT_MAX; // Distance to nearest intersection
+	glm::vec3 nearestIntersection;
+	glm::vec3 nearestNormal;
+	Material nearestMaterial;
+
+	// Intersect spheres
+	for (const Sphere& sphere : m_SphereData) {
+		if (tmath::intersectSphere(ray, sphere.center, sphere.radius, t)) {
+			// If the intersection is closer than what was previously found
+			if (t < nearestT) {
+				nearestT = t;
+				nearestIntersection = ray.at(t);
+				nearestNormal = glm::normalize(ray.at(t) - sphere.center);
+				nearestMaterial = sphere.material;
+			}
+		}
+	}
+
+	// Intersect triangles
+	for (const Triangle& triangle : m_TriangleData) {
+		if (tmath::intersectTriangle(ray, triangle.vertex0, triangle.vertex1, triangle.vertex2, t)) {
+			if (t < nearestT) {
+				nearestT = t;
+				nearestIntersection = ray.at(t);
+				nearestNormal = triangle.normal;
+				nearestMaterial = triangle.material;
+			}
+		}
+	}
+
+	// If we intersected any geometry
+	if (nearestT < FLT_MAX) {
+		nearestIntersection += nearestNormal * EPS; // Slightly offset the intersection to make sure it's outside of the geometry
+		nearestT = glm::length(nearestIntersection - ray.origin()); // Recalculate the intersection distance after offsetting
+
+		if (nearestMaterial.isEmissive()) {
+			return { nearestMaterial.color, nearestT }; // If we hit a light, do not bounce any further
+		} else if (depth > 1) {
+			// Diffuse bounce
+			const glm::vec3 diffuseDirection = nearestNormal + tmath::sphericalRand();
+			const Ray diffuseRay(nearestIntersection, diffuseDirection);
+			const HitRecord diffuseHitRecord = trace(diffuseRay, depth - 1);
+
+			const glm::vec3 L = diffuseHitRecord.color / (diffuseHitRecord.distance * diffuseHitRecord.distance); // Account for distance to the light
+
+			return { 2.0f * FPI * nearestMaterial.color * L, nearestT };
+		}
+	}
+
+	// If the ray did not hit any geometry it hits the skybox
+	if (m_SkydomeData.size() > 0) {
+		const float u = 1 + glm::atan(ray.direction().x, -ray.direction().z) * INVPI;
+		const float v = acos(ray.direction().y) * INVPI;
+
+		const size_t width = (size_t)round(u * m_SkydomeWidth);
+		const size_t height = (size_t)round(v * m_SkydomeHeight);
+
+		return { glm::clamp(m_SkydomeData[glm::min(height * m_SkydomeHeight * 2 + width, m_SkydomeData.size() - 1)], 0.0f, 1.0f), m_SkydomeRadius };
+	}
+
+	return { glm::vec3(0.04f, 0.03f, 0.08f), m_SkydomeRadius }; // If there is no skybox, return a pretty dark color
+}
+
 const std::vector<uint8_t>& EasyCore::nextFrame() {
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
 	static std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
-	shader.use();
+	m_Shader.use();
 
 	for (uint32_t y = 0; y < m_FrameHeight; y++) {
 		for (uint32_t x = 0; x < m_FrameWidth; x++) {
-			const uint32_t i = 3 * (y * m_FrameWidth + x);
-
 			glm::vec3 color(0.0f, 0.0f, 0.0f);
 
 			for (uint32_t c = 0; c < m_SamplesPerPixel; c++) {
@@ -189,16 +255,31 @@ const std::vector<uint8_t>& EasyCore::nextFrame() {
 				const float v = (y + yOffset) / m_FrameHeight;
 
 				Ray ray = m_Camera.getRay(u, v);
-				color += trace(ray, 2).color;
+				color += traceIS(ray, 2).color;
 			}
 			
 			color /= m_SamplesPerPixel;
 
+			const uint32_t i = 3 * (y * m_FrameWidth + x);
 			m_Frame[i + 0] = static_cast<uint8_t>(glm::clamp(256 * color.r, 0.0f, 255.99f));
 			m_Frame[i + 1] = static_cast<uint8_t>(glm::clamp(256 * color.g, 0.0f, 255.99f));
 			m_Frame[i + 2] = static_cast<uint8_t>(glm::clamp(256 * color.b, 0.0f, 255.99f));
 		}
 	}
+
+	// Testing
+	uint32_t totalR = 0;
+	uint32_t totalG = 0;
+	uint32_t totalB = 0;
+
+	for (uint32_t i = 0; i < 3 * m_FrameHeight * m_FrameWidth; i += 3) {
+		totalR += m_Frame[i + 0];
+		totalG += m_Frame[i + 1];
+		totalB += m_Frame[i + 2];
+	}
+
+	std::cout << "(" << m_SamplesPerPixel << "," << totalB << ")";
+	m_SamplesPerPixel++;
 
 	return m_Frame;
 }
