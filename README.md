@@ -1,2 +1,2 @@
 # Tracy
-Simple path tracer for educational purposes.
+Simple path tracer for educational purposes
